@@ -1,0 +1,84 @@
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
+export default function BottomNav({ navigation, active }) {
+  return (
+    <View style={styles.bottomNav}>
+      {/* Dashboard */}
+      <TouchableOpacity
+        style={styles.navItem}
+        onPress={() => navigation.navigate("Dashboard")}
+      >
+        <Ionicons
+          name="home-outline"
+          size={24}
+          color={active === "Dashboard" ? "#174A6A" : "#6B7280"}
+        />
+        <Text
+          style={[
+            styles.navText,
+            active === "Dashboard" && styles.navTextActive,
+          ]}
+        >
+          Beranda
+        </Text>
+      </TouchableOpacity>
+
+      {/* Data Lokal */}
+      <TouchableOpacity
+        style={styles.navItem}
+        onPress={() => navigation.navigate("DataLocal")}
+      >
+        <Ionicons
+          name="folder-outline"
+          size={24}
+          color={active === "DataLocal" ? "#174A6A" : "#6B7280"}
+        />
+        <Text
+          style={[
+            styles.navText,
+            active === "DataLocal" && styles.navTextActive,
+          ]}
+        >
+          Data Lokal
+        </Text>
+      </TouchableOpacity>
+
+      {/* Profil */}
+      <TouchableOpacity
+        style={styles.navItem}
+        onPress={() => navigation.navigate("Profile")}
+      >
+        <Ionicons
+          name="person-outline"
+          size={24}
+          color={active === "Profile" ? "#174A6A" : "#6B7280"}
+        />
+        <Text
+          style={[
+            styles.navText,
+            active === "Profile" && styles.navTextActive,
+          ]}
+        >
+          Profil
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bottomNav: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    borderTopColor: "#E5E7EB",
+    borderTopWidth: 1,
+  },
+  navItem: { alignItems: "center" },
+  navText: { fontSize: 12, color: "#6B7280", marginTop: 3 },
+  navTextActive: { color: "#174A6A", fontWeight: "bold" },
+});

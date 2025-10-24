@@ -1,0 +1,153 @@
+import React from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Switch,
+  Alert,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import BottomNav from "../components/BottomNav";
+import { useNotification } from "../context/NotificationContext";
+
+export default function ProfileScreen({ navigation }) {
+  const { notifEnabled, toggleNotification } = useNotification();
+
+  const user = {
+    name: "Adit Sopo",
+    email: "youremail@gmail.com",
+    phone: "+62877712345678",
+    avatar: "https://cdn-icons-png.flaticon.com/512/4140/4140037.png",
+  };
+
+  const handleLogout = () => {
+    Alert.alert("Konfirmasi Logout", "Apakah Anda yakin ingin keluar?", [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          console.log("🔓 Logout berhasil");
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Login" }],
+          });
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* ===== KONTEN SCROLLABLE ===== */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ===== HEADER ===== */}
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            <TouchableOpacity style={styles.editIcon}>
+              <Ionicons name="pencil" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.info}>
+            {user.email} | {user.phone}
+          </Text>
+        </View>
+
+        {/* ===== MENU ===== */}
+        <View style={styles.menu}>
+          {/* Notifikasi */}
+          <View style={styles.menuItem}>
+            <View style={styles.menuLeft}>
+              <Ionicons
+                name="notifications-outline"
+                size={20}
+                color="#fff"
+              />
+              <Text style={styles.menuText}>Notifikasi</Text>
+            </View>
+            <Switch
+              value={notifEnabled}
+              onValueChange={(val) => toggleNotification(val)}
+              trackColor={{ false: "#ccc", true: "#4CAF50" }}
+              thumbColor={notifEnabled ? "#fff" : "#f4f3f4"}
+            />
+          </View>
+
+          {/* Logout */}
+          <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="log-out-outline" size={20} color="#fff" />
+              <Text style={styles.menuText}>Logout</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* ===== BOTTOM NAVIGATION ===== */}
+      <BottomNav navigation={navigation} active="Profile" />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fff" },
+  scrollContent: { paddingBottom: 90 }, // biar gak ketutupan BottomNav
+
+  // ==== HEADER ====
+  header: {
+    backgroundColor: "#0c3b57",
+    alignItems: "center",
+    paddingBottom: 40,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+  },
+  avatarContainer: {
+    marginTop: 50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: "#fff",
+  },
+  editIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#003366",
+    borderRadius: 15,
+    padding: 4,
+  },
+  name: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  info: { color: "#fff", fontSize: 12, marginTop: 2 },
+
+  // ==== MENU ====
+  menu: { marginTop: 30, paddingHorizontal: 20 },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0c3b57",
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 15,
+    justifyContent: "space-between",
+  },
+  menuLeft: { flexDirection: "row", alignItems: "center" },
+  menuText: { marginLeft: 10, color: "#fff", fontSize: 16 },
+});
