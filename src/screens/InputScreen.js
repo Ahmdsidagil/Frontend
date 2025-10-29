@@ -13,7 +13,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getDatabase } from "../../config/database"; // pastikan path ini sesuai
+import { 
+    getDatabase,
+    saveMarket, 
+} from "../../config/database"; // pastikan path ini sesuai
 
 export default function TambahDataScreen({ navigation }) {
   const [categories, setCategories] = useState([]);

@@ -4,7 +4,6 @@ const BASE_URL = "http://103.100.27.57:5000/api"; // ganti IP sesuai server kamu
 export default {
   BASE_URL,
   LOGIN: `${BASE_URL}/users/login`,
-  DASHBOARD: `${BASE_URL}/dashboard`,
   CATEGORIES: `${BASE_URL}/categories`,
   COMMODITIES: `${BASE_URL}/commodities`,
   ADD_PRICE: `${BASE_URL}/prices/add`,
