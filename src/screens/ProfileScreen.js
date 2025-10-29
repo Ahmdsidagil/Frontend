@@ -5,18 +5,15 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Switch,
   Alert,
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
-import { useNotification } from "../context/NotificationContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getDashboard } from "../../config/api"; 
+import { getDashboard } from "../../config/api";
 
 export default function ProfileScreen({ navigation }) {
-  const { notifEnabled, toggleNotification } = useNotification();
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -65,7 +62,6 @@ export default function ProfileScreen({ navigation }) {
     ]);
   };
 
-
   // ✅ Fungsi untuk pindah ke halaman ubah sandi
   const handleUbahKataSandi = () => {
     navigation.navigate("UbahKataSandi"); // Pastikan nama screen di Stack Navigator sama
@@ -93,20 +89,6 @@ export default function ProfileScreen({ navigation }) {
 
         {/* ===== MENU ===== */}
         <View style={styles.menu}>
-          {/* Notifikasi */}
-          <View style={styles.menuItem}>
-            <View style={styles.menuLeft}>
-              <Ionicons name="notifications-outline" size={20} color="#fff" />
-              <Text style={styles.menuText}>Notifikasi</Text>
-            </View>
-            <Switch
-              value={notifEnabled}
-              onValueChange={(val) => toggleNotification(val)}
-              trackColor={{ false: "#ccc", true: "#4CAF50" }}
-              thumbColor={notifEnabled ? "#fff" : "#f4f3f4"}
-            />
-          </View>
-
           {/* ✅ Ubah Kata Sandi */}
           <TouchableOpacity style={styles.menuItem} onPress={handleUbahKataSandi}>
             <View style={styles.menuLeft}>
@@ -116,7 +98,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="chevron-forward-outline" size={20} color="#fff" />
           </TouchableOpacity>
 
-          {/* Logout */}
+          {/* 🚪 Logout */}
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <View style={styles.menuLeft}>
               <Ionicons name="log-out-outline" size={20} color="#fff" />
