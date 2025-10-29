@@ -1,16 +1,20 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet, Image, StatusBar } from "react-native";
 
 export default function SplashScreen() {
   return (
     <View style={styles.container}>
-      {/* Hapus atau komentari bagian ini */}
-      {/* <Image
-        source={require('../assets/logo.png')}
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+
+      {/* Logo di atas teks */}
+      <Image
+        source={require("../assets/logo1.png")}
         style={styles.logo}
         resizeMode="contain"
-      /> */}
-      <Text style={styles.title}>Selamat Datang di Aplikasi</Text>
+      />
+
+      {/* Teks di bawah logo */}
+      <Text style={styles.title}>HaKom</Text>
     </View>
   );
 }
@@ -18,18 +22,19 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#174A6A',
+    backgroundColor: "#174A6A",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 180,
+    height: 180,
+    marginBottom: -5,
   },
   title: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    letterSpacing: 1,
   },
-  // logo: {
-  //   width: 120,
-  //   height: 120,
-  //   marginBottom: 20,
-  // },
 });

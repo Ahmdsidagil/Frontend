@@ -8,7 +8,11 @@ export default function BottomNav({ navigation, active }) {
       {/* Dashboard */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => navigation.navigate("Dashboard")}
+        onPress={() => {
+          if (active !== "Dashboard") {
+            navigation.replace("Dashboard"); // 🚀 langsung ganti tanpa animasi
+          }
+        }}
       >
         <Ionicons
           name="home-outline"
@@ -28,7 +32,11 @@ export default function BottomNav({ navigation, active }) {
       {/* Data Lokal */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => navigation.navigate("DataLocal")}
+        onPress={() => {
+          if (active !== "DataLocal") {
+            navigation.replace("DataLocal"); // 🚀 tanpa animasi
+          }
+        }}
       >
         <Ionicons
           name="folder-outline"
@@ -48,7 +56,11 @@ export default function BottomNav({ navigation, active }) {
       {/* Profil */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => navigation.navigate("Profile")}
+        onPress={() => {
+          if (active !== "Profile") {
+            navigation.replace("Profile"); // 🚀 tanpa animasi
+          }
+        }}
       >
         <Ionicons
           name="person-outline"

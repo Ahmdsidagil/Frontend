@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import api from "../../config/api";
 import {
   View,
   Text,
@@ -8,85 +9,118 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Alert,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [kode, setKode] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
-    if (!email || !kode) {
-      Alert.alert('Peringatan', 'Email dan kode harus diisi!');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Peringatan", "Email dan kata sandi harus diisi!");
       return;
     }
 
-    // === LOGIN STATIS ===
-    const staticEmail = 'admin@gmail.com';
-    const staticKode = '1234';
+    try {
+      const response = await fetch(api.LOGIN, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (email === staticEmail && kode === staticKode) {
-      Alert.alert('Sukses', 'Login berhasil!');
-      navigation.replace('Dashboard');
-    } else {
-      Alert.alert('Gagal', 'Email atau kode salah!');
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Gagal", data.message || "Login gagal!");
+        return;
+      }
+
+      Alert.alert("Sukses", data.message);
+      navigation.replace("Dashboard");
+    } catch (error) {
+      console.error("Error:", error);
+      Alert.alert("Error", "Tidak dapat terhubung ke server!");
     }
   };
 
   return (
-    <LinearGradient colors={['#FFFFFF', '#F3F7FB']} style={styles.container}>
+    <LinearGradient colors={["#FFFFFF", "#F3F7FB"]} style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.inner}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
       >
-        <View style={styles.logoContainer}>
-          <Image
-            source={{
-              uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Coat_of_arms_of_Indonesia_Garuda_Pancasila.svg/512px-Coat_of_arms_of_Indonesia_Garuda_Pancasila.svg.png',
-            }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>MASUK</Text>
-          <Text style={styles.subtitle}>Masukkan email dan kode Anda</Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.centerContent}>
+            {/* LOGO + Teks MASUK */}
+            <View style={styles.logoContainer}>
+              <Image
+                source={require("../assets/logo1.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <Text style={styles.title}>MASUK</Text>
+              <Text style={styles.subtitle}>
+                Masukkan email dan password Anda.
+              </Text>
+            </View>
 
-        <View style={styles.form}>
-          <TextInput
-            placeholder="Alamat Email"
-            placeholderTextColor="#9CA3AF"
-            style={styles.input}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
+            {/* FORM LOGIN */}
+            <View style={styles.form}>
+              {/* Input Email */}
+              <TextInput
+                placeholder="Alamat Email"
+                placeholderTextColor="#9CA3AF"
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+              />
 
-          <TextInput
-            placeholder="Kode"
-            placeholderTextColor="#9CA3AF"
-            style={styles.input}
-            secureTextEntry
-            value={kode}
-            onChangeText={setKode}
-          />
+              {/* Input Password */}
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  placeholder="Kata Sandi"
+                  placeholderTextColor="#9CA3AF"
+                  style={styles.passwordInput}
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeButton}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={22}
+                    color="#6B7280"
+                  />
+                </TouchableOpacity>
+              </View>
 
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={handleLogin}
-            style={styles.buttonWrapper}
-          >
-            <LinearGradient
-              colors={['#174A6A', '#0B3B53']}
-              style={styles.button}
-              start={[0, 0]}
-              end={[1, 1]}
-            >
-              <Text style={styles.buttonText}>Masuk</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+              {/* Tombol Masuk */}
+              <TouchableOpacity activeOpacity={0.9} onPress={handleLogin}>
+                <LinearGradient
+                  colors={["#174A6A", "#0B3B53"]}
+                  style={styles.button}
+                  start={[0, 0]}
+                  end={[1, 1]}
+                >
+                  <Text style={styles.buttonText}>Masuk</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -96,55 +130,79 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  inner: {
+  keyboardView: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  centerContent: {
+    width: "85%",
+    alignItems: "center",
   },
   logoContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
+    alignItems: "center",
+    marginBottom: 35,
   },
   logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 12,
+    width: 130,
+    height: 130,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827",
   },
   subtitle: {
     fontSize: 13,
-    color: '#6b7280',
-    marginTop: 2,
+    color: "#6b7280",
+    marginTop: 4,
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   input: {
-    backgroundColor: '#fff',
-    borderColor: '#E5E7EB',
+    backgroundColor: "#fff",
+    borderColor: "#E5E7EB",
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    marginBottom: 12,
+    marginBottom: 14,
     fontSize: 14,
-    color: '#111827',
+    color: "#111827",
   },
-  buttonWrapper: {
-    marginTop: 6,
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderColor: "#E5E7EB",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 16,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#111827",
+  },
+  eyeButton: {
+    paddingLeft: 6,
   },
   button: {
     paddingVertical: 12,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '700',
+    color: "#fff",
+    fontWeight: "700",
     fontSize: 15,
   },
 });

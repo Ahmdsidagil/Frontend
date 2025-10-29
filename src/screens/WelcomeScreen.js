@@ -54,7 +54,7 @@ export default function WelcomeScreen({ navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
-      {/* 🖼️ Grid gambar */}
+      {/* 🖼 Grid gambar */}
       <Animated.View
         style={[
           styles.gridRow,

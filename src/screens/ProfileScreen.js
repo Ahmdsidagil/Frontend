@@ -40,9 +40,13 @@ export default function ProfileScreen({ navigation }) {
     ]);
   };
 
+  // ✅ Fungsi untuk pindah ke halaman ubah sandi
+  const handleUbahKataSandi = () => {
+    navigation.navigate("UbahKataSandi"); // Pastikan nama screen di Stack Navigator sama
+  };
+
   return (
     <View style={styles.container}>
-      {/* ===== KONTEN SCROLLABLE ===== */}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -66,11 +70,7 @@ export default function ProfileScreen({ navigation }) {
           {/* Notifikasi */}
           <View style={styles.menuItem}>
             <View style={styles.menuLeft}>
-              <Ionicons
-                name="notifications-outline"
-                size={20}
-                color="#fff"
-              />
+              <Ionicons name="notifications-outline" size={20} color="#fff" />
               <Text style={styles.menuText}>Notifikasi</Text>
             </View>
             <Switch
@@ -80,6 +80,15 @@ export default function ProfileScreen({ navigation }) {
               thumbColor={notifEnabled ? "#fff" : "#f4f3f4"}
             />
           </View>
+
+          {/* ✅ Ubah Kata Sandi */}
+          <TouchableOpacity style={styles.menuItem} onPress={handleUbahKataSandi}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="lock-closed-outline" size={20} color="#fff" />
+              <Text style={styles.menuText}>Ubah Kata Sandi</Text>
+            </View>
+            <Ionicons name="chevron-forward-outline" size={20} color="#fff" />
+          </TouchableOpacity>
 
           {/* Logout */}
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
@@ -99,7 +108,7 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { paddingBottom: 90 }, // biar gak ketutupan BottomNav
+  scrollContent: { paddingBottom: 90 },
 
   // ==== HEADER ====
   header: {
@@ -138,14 +147,14 @@ const styles = StyleSheet.create({
   info: { color: "#fff", fontSize: 12, marginTop: 2 },
 
   // ==== MENU ====
-  menu: { marginTop: 30, paddingHorizontal: 20 },
+  menu: { marginTop: 24, paddingHorizontal: 20 },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#0c3b57",
-    padding: 14,
+    padding: 12,
     borderRadius: 12,
-    marginBottom: 15,
+    marginBottom: 24,
     justifyContent: "space-between",
   },
   menuLeft: { flexDirection: "row", alignItems: "center" },

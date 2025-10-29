@@ -27,26 +27,26 @@ export default function DashboardScreen({ navigation }) {
       nama: "Daging Ayam",
       harga: "Rp. 15.000/Kg",
       tanggal: "10 Okt 2025, 08.00 WIB",
-      gambar:
-        "https://cdn-icons-png.flaticon.com/512/3069/3069179.png",
+      gambar: "https://cdn-icons-png.flaticon.com/512/3069/3069179.png",
     },
     {
       id: 2,
       nama: "Daging Sapi",
       harga: "Rp. 120.000/Kg",
       tanggal: "10 Okt 2025, 08.30 WIB",
-      gambar:
-        "https://cdn-icons-png.flaticon.com/512/1998/1998707.png",
+      gambar: "https://cdn-icons-png.flaticon.com/512/1998/1998707.png",
     },
     {
       id: 3,
       nama: "Telur Ayam",
       harga: "Rp. 28.000/Kg",
       tanggal: "10 Okt 2025, 09.00 WIB",
-      gambar:
-        "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+      gambar: "https://cdn-icons-png.flaticon.com/512/415/415682.png",
     },
   ];
+
+  // Hitung total komoditas otomatis
+  const totalKomoditas = dataKomoditas.length;
 
   return (
     <View style={styles.container}>
@@ -73,7 +73,7 @@ export default function DashboardScreen({ navigation }) {
             </View>
             <View>
               <Text style={styles.label}>Total Komoditas</Text>
-              <Text style={styles.value}>20</Text>
+              <Text style={styles.value}>{totalKomoditas}</Text>
             </View>
           </View>
 
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6",
   },
   header: {
-    paddingTop: 50,
+    paddingTop: 40,
     paddingBottom: 40,
     paddingHorizontal: 20,
   },
