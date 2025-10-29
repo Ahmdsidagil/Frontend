@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,16 +12,41 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
 import { useNotification } from "../context/NotificationContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getDashboard } from "../../config/api"; 
 
 export default function ProfileScreen({ navigation }) {
   const { notifEnabled, toggleNotification } = useNotification();
-
-  const user = {
-    name: "Adit Sopo",
-    email: "youremail@gmail.com",
-    phone: "+62877712345678",
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    phone: "+62877712345678", // sementara hardcode
     avatar: "https://cdn-icons-png.flaticon.com/512/4140/4140037.png",
-  };
+  });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) return;
+
+        // sementara ambil dari getDashboard karena datanya juga ada di sana
+        const data = await getDashboard(token);
+
+        if (data && data.success) {
+          setUser((prev) => ({
+            ...prev,
+            name: data.user_name || "Petugas Pasar",
+            email: data.user_email || "email@tidakdiketahui.com",
+          }));
+        }
+      } catch (err) {
+        console.error("❌ Gagal ambil data user:", err);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert("Konfirmasi Logout", "Apakah Anda yakin ingin keluar?", [
@@ -29,8 +54,8 @@ export default function ProfileScreen({ navigation }) {
       {
         text: "Logout",
         style: "destructive",
-        onPress: () => {
-          console.log("🔓 Logout berhasil");
+        onPress: async () => {
+          await AsyncStorage.removeItem("token");
           navigation.reset({
             index: 0,
             routes: [{ name: "Login" }],
@@ -39,6 +64,7 @@ export default function ProfileScreen({ navigation }) {
       },
     ]);
   };
+
 
   // ✅ Fungsi untuk pindah ke halaman ubah sandi
   const handleUbahKataSandi = () => {

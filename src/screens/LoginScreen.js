@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import api from "../../config/api";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -38,6 +39,14 @@ export default function LoginScreen({ navigation }) {
       if (!response.ok) {
         Alert.alert("Gagal", data.message || "Login gagal!");
         return;
+      }
+
+                  // ✅ Simpan token ke AsyncStorage
+      if (data.token) {
+        await AsyncStorage.setItem('token', data.token);
+        console.log('Token disimpan:', data.token);
+      } else {
+        console.warn('Token tidak ditemukan di respons');
       }
 
       Alert.alert("Sukses", data.message);
