@@ -8,12 +8,14 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNotification } from "../context/NotificationContext"; // import context
+import { useNotification } from "../context/NotificationContext";
 
+/**
+ * Layar notifikasi – selalu aktif
+ */
 export default function NotificationScreen({ navigation }) {
-  const { notifEnabled, notifications } = useNotification();
+  const { notifications } = useNotification();
 
-  // Komponen untuk menampilkan item notifikasi
   const renderNotification = ({ item }) => (
     <View style={styles.notificationItem}>
       <Ionicons name="notifications" size={24} color="#174A6A" />
@@ -26,7 +28,7 @@ export default function NotificationScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* 🔹 Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -35,22 +37,12 @@ export default function NotificationScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifikasi</Text>
-        {/* Spacer agar judul tetap center */}
         <View style={{ width: 24 }} />
       </View>
 
-      {/* ===== KONTEN NOTIFIKASI ===== */}
-      {!notifEnabled ? (
-        // 🔕 Saat notifikasi dimatikan
-        <View style={styles.emptyContainer}>
-          <Ionicons name="notifications-off" size={80} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>Notifikasi Dimatikan</Text>
-          <Text style={styles.emptySubtitle}>
-            Hidupkan notifikasi di menu profil untuk menerima pemberitahuan.
-          </Text>
-        </View>
-      ) : notifications.length === 0 ? (
-        // 📭 Saat tidak ada notifikasi baru
+      {/* 🔹 Konten */}
+      {notifications.length === 0 ? (
+        // 📭 Tidak ada notifikasi
         <View style={styles.emptyContainer}>
           <Image
             source={{
@@ -65,7 +57,7 @@ export default function NotificationScreen({ navigation }) {
           </Text>
         </View>
       ) : (
-        // 🔔 Tampilkan daftar notifikasi
+        // 🔔 Daftar notifikasi
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id.toString()}
@@ -87,8 +79,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
@@ -96,9 +88,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#fff",
+    marginTop:24,
   },
   backButton: {
-    padding: 6,
+    padding: 12,
+    marginTop: 24,
   },
   emptyContainer: {
     flex: 1,
