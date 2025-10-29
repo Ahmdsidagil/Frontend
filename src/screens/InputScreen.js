@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,93 +12,114 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getDatabase } from "../../config/database"; // pastikan path ini sesuai
 
 export default function TambahDataScreen({ navigation }) {
-  const [komoditas, setKomoditas] = useState("");
-  const [kategoriDipilih, setKategoriDipilih] = useState([]); // sekarang array (multi select)
-  const [harga, setHarga] = useState("");
-  const [satuan, setSatuan] = useState("");
-  const [pasar, setPasar] = useState("Ngadiprono");
-  const [alamat, setAlamat] = useState("Yogyakarta");
+  const [categories, setCategories] = useState([]);
+  const [commodities, setCommodities] = useState([]);
+  const [filteredCommodities, setFilteredCommodities] = useState([]);
+
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCommodity, setSelectedCommodity] = useState(null);
+  const [unit, setUnit] = useState("");
+  const [price, setPrice] = useState("");
+  const [market, setMarket] = useState("");
+  const [location, setLocation] = useState("");
 
   const [modalKategoriVisible, setModalKategoriVisible] = useState(false);
   const [modalKomoditasVisible, setModalKomoditasVisible] = useState(false);
   const [searchKategori, setSearchKategori] = useState("");
   const [searchKomoditas, setSearchKomoditas] = useState("");
 
-  // 🔹 Data kategori dan komoditas
-  const dataKategori = [
-    "Gula",
-    "Minyak",
-    "Ikan",
-    "Buah",
-    "Sayur",
-    "Daging",
-    "Telur",
-    "Beras",
-    "Kopi",
-    "Teh",
-    "Rempah",
-  ];
+  // ================== INIT DATA ==================
+  useEffect(() => {
+    initData();
+  }, []);
 
-  const dataKomoditas = {
-    Gula: ["Gula Merah", "Gula Pasir"],
-    Minyak: ["Minyak Kelapa", "Minyak Sawit"],
-    Ikan: ["Ikan Lele", "Ikan Tuna", "Ikan Nila"],
-    Buah: ["Apel", "Jeruk", "Pisang", "Mangga"],
-    Sayur: ["Bayam", "Kangkung", "Wortel", "Tomat"],
-    Daging: ["Daging Ayam", "Daging Sapi"],
-    Telur: ["Telur Ayam", "Telur Bebek"],
-    Beras: ["Beras Putih", "Beras Merah"],
-    Kopi: ["Kopi Robusta", "Kopi Arabika"],
-    Teh: ["Teh Hijau", "Teh Hitam"],
-    Rempah: ["Lada", "Kunyit", "Jahe", "Ketumbar"],
-  };
+  const initData = async () => {
+    try {
+      const db = await getDatabase();
 
-  const filteredKategori = dataKategori.filter((item) =>
-    item.toLowerCase().includes(searchKategori.toLowerCase())
-  );
+      const categoriesResult = await db.getAllAsync("SELECT * FROM categories;");
+      const commoditiesResult = await db.getAllAsync("SELECT * FROM commodities;");
 
-  // 🔹 gabungkan semua komoditas dari kategori yang dipilih
-  const filteredKomoditas = kategoriDipilih.length
-    ? kategoriDipilih
-        .flatMap((kategori) => dataKomoditas[kategori] || [])
-        .filter((item) => item.toLowerCase().includes(searchKomoditas.toLowerCase()))
-    : [];
-
-  const handleSelectKategori = (item) => {
-    if (kategoriDipilih.includes(item)) {
-      setKategoriDipilih(kategoriDipilih.filter((i) => i !== item));
-    } else {
-      setKategoriDipilih([...kategoriDipilih, item]);
+      setCategories(categoriesResult);
+      setCommodities(commoditiesResult);
+      const storedMarket = await AsyncStorage.getItem("market_name");
+      const storedLocation = await AsyncStorage.getItem("market_location");
+      setMarket(storedMarket || "Tidak diketahui");
+      setLocation(storedLocation || "-");
+    } catch (error) {
+      console.log("initData error:", error);
     }
   };
 
-  const handleSubmit = () => {
-    if (kategoriDipilih.length === 0 || !komoditas || !harga || !satuan) {
+  // ================== HANDLER ==================
+  const handleSelectCategory = (category) => {
+    setSelectedCategory(category);
+    setSelectedCommodity(null);
+    setUnit("");
+
+    const filtered = commodities.filter(
+      (c) => c.category_id === category.id
+    );
+    setFilteredCommodities(filtered);
+  };
+
+  const handleSelectCommodity = (commodity) => {
+    setSelectedCommodity(commodity);
+    setUnit(commodity.unit);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedCategory || !selectedCommodity || !price) {
       Alert.alert("Peringatan", "Semua field wajib diisi!");
       return;
     }
 
-    const data = {
-      kategori: kategoriDipilih,
-      komoditas,
-      harga,
-      satuan,
-      pasar,
-      alamat,
-    };
-
-    console.log("Data tersimpan:", data);
-    Alert.alert("Berhasil", "Data berhasil disimpan!");
+    try {
+      const db = await getDatabase();
+      db.transaction(
+        (tx) => {
+          tx.executeSql(
+            "INSERT INTO prices (commodity_id, price, date, status) VALUES (?, ?, datetime('now'), 'pending');",
+            [selectedCommodity.id, price]
+          );
+        },
+        (error) => {
+          console.log("Error inserting price:", error);
+          Alert.alert("Gagal", "Gagal menyimpan data!");
+        },
+        () => {
+          Alert.alert("Berhasil", "Data harga berhasil disimpan offline!");
+          setPrice("");
+          setSelectedCategory(null);
+          setSelectedCommodity(null);
+          setUnit("");
+        }
+      );
+    } catch (error) {
+      console.log("Submit error:", error);
+    }
   };
 
+  // ================== FILTER ==================
+  const filteredCategories = categories.filter((c) =>
+    c.name_category.toLowerCase().includes(searchKategori.toLowerCase())
+  );
+
+  const filteredComs = filteredCommodities.filter((c) =>
+    c.name_commodity.toLowerCase().includes(searchKomoditas.toLowerCase())
+  );
+
+  // ================== UI ==================
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#fff" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* 🔹 Header */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -110,43 +131,50 @@ export default function TambahDataScreen({ navigation }) {
         <View style={{ width: 22 }} />
       </View>
 
-      {/* 🔹 Form */}
       <ScrollView contentContainerStyle={styles.container}>
-        {/* 🔸 KATEGORI */}
+        {/* Kategori */}
         <Text style={styles.label}>Kategori</Text>
         <TouchableOpacity
           style={styles.dropdownHeader}
           onPress={() => setModalKategoriVisible(true)}
         >
           <Text
-            style={{ color: kategoriDipilih.length ? "#000" : "#9CA3AF", flex: 1 }}
+            style={{
+              color: selectedCategory ? "#000" : "#9CA3AF",
+              flex: 1,
+            }}
           >
-            {kategoriDipilih.length
-              ? kategoriDipilih.join(", ")
-              : "Pilih kategori"}
+            {selectedCategory ? selectedCategory.name_category : "Pilih kategori"}
           </Text>
           <Ionicons name="chevron-down" size={18} color="#174A6A" />
         </TouchableOpacity>
 
-        {/* 🔸 KOMODITAS */}
+        {/* Komoditas */}
         <Text style={styles.label}>Nama Komoditas</Text>
         <TouchableOpacity
           style={styles.dropdownHeader}
           onPress={() => {
-            if (kategoriDipilih.length === 0) {
+            if (!selectedCategory) {
               Alert.alert("Peringatan", "Pilih kategori terlebih dahulu!");
               return;
             }
             setModalKomoditasVisible(true);
           }}
         >
-          <Text style={{ color: komoditas ? "#000" : "#9CA3AF", flex: 1 }}>
-            {komoditas || "Pilih komoditas"}
+          <Text
+            style={{
+              color: selectedCommodity ? "#000" : "#9CA3AF",
+              flex: 1,
+            }}
+          >
+            {selectedCommodity
+              ? selectedCommodity.name_commodity
+              : "Pilih komoditas"}
           </Text>
           <Ionicons name="chevron-down" size={18} color="#174A6A" />
         </TouchableOpacity>
 
-        {/* 🔸 Harga & Satuan */}
+        {/* Harga & Satuan */}
         <View style={styles.row}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={styles.label}>Harga</Text>
@@ -154,35 +182,41 @@ export default function TambahDataScreen({ navigation }) {
               style={styles.input}
               placeholder="Rp."
               keyboardType="numeric"
-              value={harga}
-              onChangeText={setHarga}
+              value={price}
+              onChangeText={setPrice}
             />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Satuan</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Kg / Liter / Ekor"
-              value={satuan}
-              onChangeText={setSatuan}
+              style={[styles.input, { backgroundColor: "#f0f0f0" }]}
+              value={unit}
+              editable={false}
             />
           </View>
         </View>
 
-        {/* 🔸 Pasar */}
+        {/* Pasar */}
         <Text style={styles.label}>Nama Pasar</Text>
-        <TextInput style={styles.input} value={pasar} onChangeText={setPasar} />
+        <TextInput
+          style={[styles.input, { backgroundColor: "#f0f0f0" }]}
+          value={market}
+          editable={false}
+        />
 
         <Text style={styles.label}>Alamat Pasar</Text>
-        <TextInput style={styles.input} value={alamat} onChangeText={setAlamat} />
+        <TextInput
+          style={[styles.input, { backgroundColor: "#f0f0f0" }]}
+          value={location}
+          editable={false}
+        />
 
-        {/* 🔸 Tombol Simpan */}
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Simpan</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* 🔹 Modal Pilih Kategori (MULTI SELECT) */}
+      {/* Modal Pilih Kategori */}
       <Modal
         visible={modalKategoriVisible}
         transparent
@@ -198,43 +232,31 @@ export default function TambahDataScreen({ navigation }) {
               value={searchKategori}
               onChangeText={setSearchKategori}
             />
-            <ScrollView
-              style={{ maxHeight: 300 }}
-              showsVerticalScrollIndicator={true}
-            >
-              {filteredKategori.map((item) => {
-                const selected = kategoriDipilih.includes(item);
-                return (
-                  <TouchableOpacity
-                    key={item}
-                    style={[
-                      styles.optionItem,
-                      selected && styles.optionActive,
-                    ]}
-                    onPress={() => handleSelectKategori(item)}
-                  >
-                    <Ionicons
-                      name={selected ? "checkbox" : "square-outline"}
-                      size={20}
-                      color="#174A6A"
-                      style={{ marginRight: 10 }}
-                    />
-                    <Text style={styles.optionText}>{item}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <ScrollView style={{ maxHeight: 300 }}>
+              {filteredCategories.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.optionItem}
+                  onPress={() => {
+                    handleSelectCategory(item);
+                    setModalKategoriVisible(false);
+                  }}
+                >
+                  <Text style={styles.optionText}>{item.name_category}</Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
             <TouchableOpacity
               onPress={() => setModalKategoriVisible(false)}
               style={styles.closeButton}
             >
-              <Text style={styles.closeText}>Selesai</Text>
+              <Text style={styles.closeText}>Tutup</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* 🔹 Modal Pilih Komoditas */}
+      {/* Modal Pilih Komoditas */}
       <Modal
         visible={modalKomoditasVisible}
         transparent
@@ -250,23 +272,17 @@ export default function TambahDataScreen({ navigation }) {
               value={searchKomoditas}
               onChangeText={setSearchKomoditas}
             />
-            <ScrollView
-              style={{ maxHeight: 300 }}
-              showsVerticalScrollIndicator={true}
-            >
-              {filteredKomoditas.map((item) => (
+            <ScrollView style={{ maxHeight: 300 }}>
+              {filteredComs.map((item) => (
                 <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.optionItem,
-                    item === komoditas && styles.optionActive,
-                  ]}
+                  key={item.id}
+                  style={styles.optionItem}
                   onPress={() => {
-                    setKomoditas(item);
+                    handleSelectCommodity(item);
                     setModalKomoditasVisible(false);
                   }}
                 >
-                  <Text style={styles.optionText}>{item}</Text>
+                  <Text style={styles.optionText}>{item.name_commodity}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -373,17 +389,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   optionItem: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: "#eee",
   },
   optionText: {
     color: "#333",
-  },
-  optionActive: {
-    backgroundColor: "#E6F0F6",
   },
   closeButton: {
     marginTop: 10,
