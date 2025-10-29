@@ -3,10 +3,10 @@ const BASE_URL = 'http://103.100.27.57:5000/api'; // ganti IP kamu di sini
 export default {
   BASE_URL,
   LOGIN: `${BASE_URL}/users/login`,
-  DASHBOARD: `${BASE_URL}/dashboard`,
   CATEGORIES: `${BASE_URL}/categories`,
   COMMODITIES: `${BASE_URL}/commodities`,
   ADD_PRICE: `${BASE_URL}/prices/add`,
+  GET_MARKET: `${BASE_URL}/markets`,
   // nanti bisa tambahkan endpoint lain di sini:
   // GET_MARKET: `${BASE_URL}/markets`,
   // ADD_PRICE: `${BASE_URL}/prices/add`,

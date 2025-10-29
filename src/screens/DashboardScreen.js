@@ -19,6 +19,7 @@ import {
   initDatabase,
   syncFromServer,
   saveMarket,
+  debugTables,
 } from "../../config/database";
 
 export default function DashboardScreen({ navigation }) {
@@ -41,6 +42,7 @@ export default function DashboardScreen({ navigation }) {
           navigation.replace("Login");
           return;
         }
+        
 
         // 🔹 3. Sinkronisasi kategori & komoditas dari server
         console.log("🔄 Sinkronisasi data master...");
@@ -57,7 +59,6 @@ export default function DashboardScreen({ navigation }) {
           if (data.market) {
             await saveMarket(data.market);
             console.log("✅ Data pasar berhasil disimpan ke SQLite");
-
           }
         } else {
           console.warn("⚠️ Data dashboard tidak valid:", data);

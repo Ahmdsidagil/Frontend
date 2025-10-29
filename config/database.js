@@ -48,6 +48,15 @@ export const initDatabase = async () => {
       FOREIGN KEY (market_id) REFERENCES markets(id)
     );
   `);
+  await db.execAsync(`
+  CREATE TABLE IF NOT EXISTS market_commodities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    market_id INTEGER,
+    commodity_id INTEGER,
+    FOREIGN KEY (market_id) REFERENCES markets(id),
+    FOREIGN KEY (commodity_id) REFERENCES commodities(id)
+    );
+  `);
 
   console.log("✅ Database & tabel lokal siap digunakan");
 };
@@ -71,31 +80,31 @@ export const syncFromServer = async () => {
 
     const categoriesURL = api.CATEGORIES;
     const commoditiesURL = api.COMMODITIES;
+    const marketsURL = api.GET_MARKET;
 
-    console.log("📥 Fetching data kategori dari:", categoriesURL);
-    console.log("📥 Fetching data komoditas dari:", commoditiesURL);
-
-    const [catRes, comRes] = await Promise.all([
+    // Fetch semua data sekaligus
+    const [catRes, comRes, marketRes] = await Promise.all([
       fetch(categoriesURL, { headers: { Authorization: `Bearer ${token}` } }),
       fetch(commoditiesURL, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(marketsURL, { headers: { Authorization: `Bearer ${token}` } }),
     ]);
 
-    console.log("📊 Status respons:", catRes.status, comRes.status);
-
-    if (!catRes.ok || !comRes.ok) {
-      throw new Error(`Server error: ${catRes.status} / ${comRes.status}`);
+    if (!catRes.ok || !comRes.ok || !marketRes.ok) {
+      throw new Error(
+        `Server error: ${catRes.status} / ${comRes.status} / ${marketRes.status}`
+      );
     }
 
     const categories = await catRes.json();
     const commodities = await comRes.json();
+    const markets = await marketRes.json();
 
-    console.log("📦 Jumlah kategori:", categories.length);
-    console.log("📦 Jumlah komoditas:", commodities.length);
-    console.log("🧩 Contoh data commodities:", commodities[0]);
-
+    // Hapus data lama
     await db.execAsync("DELETE FROM categories;");
     await db.execAsync("DELETE FROM commodities;");
+    await db.execAsync("DELETE FROM markets;");
 
+    // Insert categories
     for (const cat of categories) {
       await db.runAsync(
         `INSERT INTO categories (id, name_category) VALUES (?, ?);`,
@@ -103,6 +112,7 @@ export const syncFromServer = async () => {
       );
     }
 
+    // Insert commodities
     for (const com of commodities) {
       const categoryId = com.category_id || com.category?.id || null;
       await db.runAsync(
@@ -112,9 +122,45 @@ export const syncFromServer = async () => {
       );
     }
 
-    console.log("✅ Data kategori & komoditas berhasil disinkronkan ke lokal");
+    // Insert markets
+    for (const market of markets) {
+      await db.runAsync(
+        `INSERT INTO markets (id, name_market, location) VALUES (?, ?, ?);`,
+        [market.id, market.name_market, market.location]
+      );
+    }
+
+    console.log("✅ Data kategori, komoditas & pasar berhasil disinkronkan ke lokal");
+
   } catch (err) {
     console.error("❌ Gagal sync data:", err);
+  }
+};
+
+// 🔹 Fungsi debug tabel (opsional, dipanggil terpisah)
+export const debugTable = async (tableName) => {
+  try {
+    const result = await db.getAllAsync(`SELECT * FROM ${tableName};`);
+    console.log(`📋 Isi tabel ${tableName}:`, result);
+  } catch (err) {
+    console.error(`❌ Error membaca tabel ${tableName}:`, err);
+  }
+};
+
+
+// database.js
+export const debugTables = async () => {
+  if (!db) return console.warn("⚠️ Database belum diinisialisasi");
+
+  const tables = ["categories", "commodities", "markets", "prices", "market_commodities"];
+
+  for (const table of tables) {
+    try {
+      const result = await db.getAllAsync(`SELECT * FROM ${table};`);
+      console.log(`📋 Isi tabel ${table}:`, result);
+    } catch (err) {
+      console.error(`❌ Gagal membaca tabel ${table}:`, err);
+    }
   }
 };
 
@@ -124,15 +170,19 @@ export const syncFromServer = async () => {
 export const saveMarket = async (market) => {
   if (!db) return console.warn("⚠️ Database belum diinisialisasi");
 
-  await db.execAsync("DELETE FROM markets;");
-  await db.runAsync(
-    `INSERT INTO markets (id, name_market, location) VALUES (?, ?, ?);`,
-    [market.id, market.name_market, market.location]
-  );
+  try {
+    await db.runAsync(
+      `INSERT INTO markets (id, name_market, location) VALUES (?, ?, ?);`,
+      [market.id, market.name_market, market.location]
+    );
+    console.log("✅ Data pasar disimpan lokal:", market);
 
-  console.log("✅ Data pasar disimpan lokal");
+    const check = await showMarkets();
+    console.log("📌 Tabel markets saat ini:", check);
+  } catch (err) {
+    console.error("❌ Gagal menyimpan pasar:", err);
+  }
 };
-
 
 // 🔹 Simpan input harga (offline)
 export const savePrice = async (commodityId, marketId, price) => {
